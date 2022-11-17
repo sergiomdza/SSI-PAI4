@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.Toast;
@@ -13,12 +14,20 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 
 public class MainActivity extends AppCompatActivity {
 
     // Setup Server information
-    protected static String server = "10.0.2.2";
-    protected static int port = 7070;
+    protected static String server = "192.168.42.142";
+    protected static int port = 5000;
+    private Socket client;
+    private PrintWriter printwriter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
                 showDialog();
             }
         });
-
-
     }
 
     // Creación de un cuadro de dialogo para confirmar pedido
@@ -63,22 +70,58 @@ public class MainActivity extends AppCompatActivity {
                                     // 2. Firmar los datos
 
                                     // 3. Enviar los datos
-                                    
-                                    String mensaje = "Petición enviada correctamente. " + "Numero - " + value;
-                                    Toast.makeText(MainActivity.this, mensaje, Toast.LENGTH_SHORT).show();
+
+                                    //String mensaje = "Petición enviada correctamente. " + "Numero - " + value;
+                                    String mensaje = "1-2-3";
+                                    new Thread(new ClientThread(mensaje)).start();
+                                    //Toast.makeText(MainActivity.this, mensaje, Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                     )
-                    .
-
-                            setNegativeButton(android.R.string.no, null)
-
-                    .
-
-                            show();
+                    .setNegativeButton(android.R.string.no, null)
+                    .show();
         }
     }
 
+    class ClientThread implements Runnable {
+        private final String message;
+
+        ClientThread(String message) {
+            this.message = message;
+        }
+        @Override
+        public void run() {
+            Log.e("INFO","Corre Hilo");
+            try {
+                // the IP and port should be correct to have a connection established
+                // Creates a stream socket and connects it to the specified port number on the named host.
+                Log.e("INFO","INTENTAMOS");
+                client = new Socket(server, port); // connect to server
+                Log.e("INFO","Conectamos");
+                printwriter = new PrintWriter(client.getOutputStream(),true);
+                Log.e("INFO","Mandamos Mensaje");
+                printwriter.write(message); // write the message to output stream
+                Log.e("INFO","Mensaje Mandado");
+                printwriter.flush();
+                printwriter.close();
+
+                // closing the connection
+                client.close();
+                Log.e("Error","Conexión Establecida");
+            } catch (IOException e) {
+                Log.e("Error","Error en la conexión");
+                e.printStackTrace();
+            }
+
+            // updating the UI
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.e("Error","Esto Que");
+                }
+            });
+        }
+    }
 
 }
