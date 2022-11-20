@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -18,15 +19,21 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 
 public class MainActivity extends AppCompatActivity {
 
     // Setup Server information
-    protected static String server = "192.168.42.142";
-    protected static int port = 5000;
+    protected static String server = "10.0.2.2";
+    protected static int port = 7070;
     private Socket client;
     private PrintWriter printwriter;
+    private EditText text;
+    private String message;
 
 
     @Override
@@ -34,8 +41,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                .permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         // Capturamos el boton de Enviar
         View button = findViewById(R.id.button_send);
+
 
         // Llama al listener del boton Enviar
         button.setOnClickListener(new View.OnClickListener() {
@@ -49,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
     // Creación de un cuadro de dialogo para confirmar pedido
     private void showDialog() throws Resources.NotFoundException {
         CheckBox sabanas = (CheckBox) findViewById(R.id.checkBox_sabanas);
-        EditText text = (EditText)findViewById(R.id.NumberInput);
+        text = (EditText)findViewById(R.id.NumberInput);
+
         final String value = text.getText().toString();
 
         if (!sabanas.isChecked() || isEmpty(value)) {
@@ -66,14 +79,33 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int whichButton) {
 
                                     // 1. Extraer los datos de la vista
+                                    message = text.getText().toString();
+                                    text.setText("");
+
+                                    Log.e("INFO",message); // Mensaje a enviar
 
                                     // 2. Firmar los datos
 
                                     // 3. Enviar los datos
+                                    try {
+                                        client = new Socket("10.0.2.2", 7070);  //connect to server
+                                        printwriter = new PrintWriter(client.getOutputStream(), true);
+                                        printwriter.println(message);  //write the message to output stream
+
+                                        printwriter.flush();
+                                        printwriter.close();
+                                        client.close();   //closing the connection
+
+                                    } catch (UnknownHostException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
 
                                     //String mensaje = "Petición enviada correctamente. " + "Numero - " + value;
                                     String mensaje = "1-2-3";
-                                    new Thread(new ClientThread(mensaje)).start();
+//                                    new Thread(new ClientThread(mensaje)).start();
                                     //Toast.makeText(MainActivity.this, mensaje, Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -84,44 +116,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class ClientThread implements Runnable {
-        private final String message;
-
-        ClientThread(String message) {
-            this.message = message;
-        }
-        @Override
-        public void run() {
-            Log.e("INFO","Corre Hilo");
-            try {
-                // the IP and port should be correct to have a connection established
-                // Creates a stream socket and connects it to the specified port number on the named host.
-                Log.e("INFO","INTENTAMOS");
-                client = new Socket(server, port); // connect to server
-                Log.e("INFO","Conectamos");
-                printwriter = new PrintWriter(client.getOutputStream(),true);
-                Log.e("INFO","Mandamos Mensaje");
-                printwriter.write(message); // write the message to output stream
-                Log.e("INFO","Mensaje Mandado");
-                printwriter.flush();
-                printwriter.close();
-
-                // closing the connection
-                client.close();
-                Log.e("Error","Conexión Establecida");
-            } catch (IOException e) {
-                Log.e("Error","Error en la conexión");
-                e.printStackTrace();
-            }
-
-            // updating the UI
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.e("Error","Esto Que");
-                }
-            });
-        }
-    }
+//    class ClientThread implements Runnable {
+//        private final String message;
+//
+//        ClientThread(String message) {
+//            this.message = message;
+//        }
+//        @Override
+//        public void run() {
+//            Log.e("INFO","Corre Hilo");
+//            try {
+//                // the IP and port should be correct to have a connection established
+//                // Creates a stream socket and connects it to the specified port number on the named host.
+//                Log.e("INFO","INTENTAMOS");
+//                client = new Socket(server, port); // connect to server
+//                Log.e("INFO","Conectamos");
+//                printwriter = new PrintWriter(client.getOutputStream(),true);
+//                Log.e("INFO","Mandamos Mensaje");
+//                printwriter.write(message); // write the message to output stream
+//                Log.e("INFO","Mensaje Mandado");
+//                printwriter.flush();
+//                printwriter.close();
+//
+//                // closing the connection
+//                client.close();
+//                Log.e("Error","Conexión Establecida");
+//            } catch (IOException e) {
+//                Log.e("Error","Error en la conexión");
+//                e.printStackTrace();
+//            }
+//
+//            // updating the UI
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Log.e("Error","Esto Que");
+//                }
+//            });
+//        }
+//    }
 
 }
