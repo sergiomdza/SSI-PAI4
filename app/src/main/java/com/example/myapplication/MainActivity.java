@@ -23,17 +23,25 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
 
 
 public class MainActivity extends AppCompatActivity {
 
     // Setup Server information
-    protected static String server = "10.0.2.2";
+    protected static String server = "127.0.0.1";
     protected static int port = 7070;
     private Socket client;
     private PrintWriter printwriter;
     private EditText text;
     private String message;
+    private byte[] firma;
 
 
     @Override
@@ -61,11 +69,14 @@ public class MainActivity extends AppCompatActivity {
     // Creación de un cuadro de dialogo para confirmar pedido
     private void showDialog() throws Resources.NotFoundException {
         CheckBox sabanas = (CheckBox) findViewById(R.id.checkBox_sabanas);
+        //CheckBox armario = (CheckBox) findViewById(R.id.checkBox_armario);
+        //CheckBox ropero = (CheckBox) findViewById(R.id.checkBox_ropero);
+
         text = (EditText)findViewById(R.id.NumberInput);
 
         final String value = text.getText().toString();
 
-        if (!sabanas.isChecked() || isEmpty(value)) {
+        if (!sabanas.isChecked()  || isEmpty(value)) {
             // Mostramos un mensaje emergente;
             Toast.makeText(getApplicationContext(), "Selecciona al menos un elemento y una cantidad", Toast.LENGTH_SHORT).show();
         } else {
@@ -80,27 +91,63 @@ public class MainActivity extends AppCompatActivity {
 
                                     // 1. Extraer los datos de la vista
                                     message = text.getText().toString();
-                                    text.setText("");
-
-                                    Log.e("INFO",message); // Mensaje a enviar
-
-                                    // 2. Firmar los datos
-
-                                    // 3. Enviar los datos
-                                    try {
-                                        client = new Socket("10.0.2.2", 7070);  //connect to server
-                                        printwriter = new PrintWriter(client.getOutputStream(), true);
-                                        printwriter.println(message);  //write the message to output stream
-
-                                        printwriter.flush();
-                                        printwriter.close();
-                                        client.close();   //closing the connection
-
-                                    } catch (UnknownHostException e) {
-                                        e.printStackTrace();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                    int message_int = Integer.parseInt(message);
+                                    if(message_int>30){
+                                        Log.e("INFO","HOLA");
                                     }
+                                    else{
+                                        text.setText("");
+                                        message = message + ", Sabanas : " + String.valueOf(sabanas.isChecked());
+
+
+                                        Log.e("INFO",message); // Mensaje a enviar
+
+                                        // 2. Firmar los datos
+                                        KeyPairGenerator kgen = null;
+                                        try {
+                                            kgen = KeyPairGenerator.getInstance("RSA");
+                                        } catch (NoSuchAlgorithmException e) {
+                                            e.printStackTrace();
+                                        }
+                                        kgen.initialize(2048);
+                                        KeyPair keys = kgen.generateKeyPair();
+
+                                        try {
+                                            Signature sg = Signature.getInstance("SHA256withRSA");
+                                            sg.initSign(keys.getPrivate());
+                                            sg.update(message.getBytes());
+                                            firma = sg.sign();
+
+                                        } catch (NoSuchAlgorithmException e) {
+                                            e.printStackTrace();
+                                        } catch (InvalidKeyException e) {
+                                            e.printStackTrace();
+                                        } catch (SignatureException e) {
+                                            e.printStackTrace();
+                                        }
+
+
+                                        // 3. Enviar los datos
+                                        try {
+                                            String s = new String(firma);
+                                            s = s + ", Clave: " + keys.getPublic();
+                                            Log.e("info",s
+                                            );
+                                            client = new Socket("localhost", 7070);  //connect to server
+                                            printwriter = new PrintWriter(client.getOutputStream(), true);
+                                            printwriter.println();  //write the message to output stream
+
+                                            printwriter.flush();
+                                            printwriter.close();
+                                            client.close();   //closing the connection
+
+                                        } catch (UnknownHostException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
 
 
                                     //String mensaje = "Petición enviada correctamente. " + "Numero - " + value;
