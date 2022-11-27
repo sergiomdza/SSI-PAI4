@@ -59,6 +59,26 @@
             android:checked="false"
             android:text="Sábanas" />
 
+        <CheckBox
+            android:id="@+id/checkBox_mesas"
+            android:layout_width="162dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="21dp"
+            android:layout_marginLeft="21dp"
+            android:layout_marginTop="41dp"
+            android:checked="false"
+            android:text="Mesas" />
+
+        <CheckBox
+            android:id="@+id/checkBox_sillas"
+            android:layout_width="161dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="21dp"
+            android:layout_marginLeft="21dp"
+            android:layout_marginTop="41dp"
+            android:checked="false"
+            android:text="Sillas" />
+
     </LinearLayout>
 
 </RelativeLayout>

@@ -69,14 +69,14 @@ public class MainActivity extends AppCompatActivity {
     // Creación de un cuadro de dialogo para confirmar pedido
     private void showDialog() throws Resources.NotFoundException {
         CheckBox sabanas = (CheckBox) findViewById(R.id.checkBox_sabanas);
-        //CheckBox armario = (CheckBox) findViewById(R.id.checkBox_armario);
-        //CheckBox ropero = (CheckBox) findViewById(R.id.checkBox_ropero);
+        CheckBox mesas = (CheckBox) findViewById(R.id.checkBox_mesas);
+        CheckBox sillas = (CheckBox) findViewById(R.id.checkBox_sillas);
 
         text = (EditText)findViewById(R.id.NumberInput);
 
         final String value = text.getText().toString();
 
-        if (!sabanas.isChecked()  || isEmpty(value)) {
+        if ((!sabanas.isChecked() & !mesas.isChecked() & !sillas.isChecked())  || isEmpty(value)) {
             // Mostramos un mensaje emergente;
             Toast.makeText(getApplicationContext(), "Selecciona al menos un elemento y una cantidad", Toast.LENGTH_SHORT).show();
         } else {
@@ -97,7 +97,10 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     else{
                                         text.setText("");
-                                        message = message + ", Sabanas : " + String.valueOf(sabanas.isChecked());
+                                        message = message + ", Sabanas : " + String.valueOf(sabanas.isChecked())
+                                                + ", Mesas : " + String.valueOf(mesas.isChecked())
+                                                + ", Sillas : " + String.valueOf(sillas.isChecked())
+                                                ;
 
 
                                         Log.e("INFO",message); // Mensaje a enviar
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                                             );
                                             client = new Socket("localhost", 7070);  //connect to server
                                             printwriter = new PrintWriter(client.getOutputStream(), true);
-                                            printwriter.println();  //write the message to output stream
+                                            printwriter.println(s);  //write the message to output stream
 
                                             printwriter.flush();
                                             printwriter.close();
